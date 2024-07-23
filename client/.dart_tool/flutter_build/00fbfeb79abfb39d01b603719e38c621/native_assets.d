@@ -1,0 +1,1 @@
+ /Users/sil/Documents/Work/YellowCoins/dev/client/.dart_tool/flutter_build/00fbfeb79abfb39d01b603719e38c621/native_assets.yaml: 
