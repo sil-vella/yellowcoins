@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "express": "^4.19.2",
-    "firebase-admin": "^12.2.0"
+    "firebase-admin": "^12.2.0",
+    "sqlite3": "^5.1.7"
   }
 }
