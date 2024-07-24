@@ -8,12 +8,6 @@
       "languageVersion": "2.18"
     },
     {
-      "name": "bloc",
-      "rootUri": "file:///Users/sil/.pub-cache/hosted/pub.dev/bloc-8.1.4",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "boolean_selector",
       "rootUri": "file:///Users/sil/.pub-cache/hosted/pub.dev/boolean_selector-2.1.1",
       "packageUri": "lib/",
@@ -60,12 +54,6 @@
       "rootUri": "file:///Users/sil/development/flutter/packages/flutter",
       "packageUri": "lib/",
       "languageVersion": "3.3"
-    },
-    {
-      "name": "flutter_bloc",
-      "rootUri": "file:///Users/sil/.pub-cache/hosted/pub.dev/flutter_bloc-8.1.6",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
     },
     {
       "name": "flutter_lints",
@@ -176,18 +164,6 @@
       "languageVersion": "2.18"
     },
     {
-      "name": "sqflite",
-      "rootUri": "file:///Users/sil/.pub-cache/hosted/pub.dev/sqflite-2.3.3+1",
-      "packageUri": "lib/",
-      "languageVersion": "3.3"
-    },
-    {
-      "name": "sqflite_common",
-      "rootUri": "file:///Users/sil/.pub-cache/hosted/pub.dev/sqflite_common-2.5.4",
-      "packageUri": "lib/",
-      "languageVersion": "3.3"
-    },
-    {
       "name": "stack_trace",
       "rootUri": "file:///Users/sil/.pub-cache/hosted/pub.dev/stack_trace-1.11.1",
       "packageUri": "lib/",
@@ -204,12 +180,6 @@
       "rootUri": "file:///Users/sil/.pub-cache/hosted/pub.dev/string_scanner-1.2.0",
       "packageUri": "lib/",
       "languageVersion": "2.18"
-    },
-    {
-      "name": "synchronized",
-      "rootUri": "file:///Users/sil/.pub-cache/hosted/pub.dev/synchronized-3.1.0+1",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
     },
     {
       "name": "term_glyph",
@@ -278,7 +248,7 @@
       "languageVersion": "3.4"
     }
   ],
-  "generated": "2024-07-24T11:08:50.991402Z",
+  "generated": "2024-07-24T14:52:20.222347Z",
   "generator": "pub",
   "generatorVersion": "3.4.4",
   "flutterRoot": "file:///Users/sil/development/flutter",

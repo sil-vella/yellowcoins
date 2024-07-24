@@ -1,53 +1,52 @@
 // File: lib/screens/account.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:client/bloc/bloc/auth_bloc.dart';
-import 'package:client/bloc/bloc_event/auth_event.dart';
-import 'package:client/bloc/bloc_state/auth_state.dart';
-import 'package:client/widgets/login.dart';
-import 'package:client/widgets/signup.dart'; // Import SignUpWidget
+import 'package:provider/provider.dart';
+import 'package:client/providers/auth_provider.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    print('Building AccountScreen'); // Debugging statement
-    return BlocProvider(
-      create: (context) {
-        print('Creating AuthBloc in AccountScreen'); // Debugging statement
-        final authBloc = AuthBloc()..add(AppStarted());
-        print('AuthBloc: AppStarted event added'); // Debugging statement
-        return authBloc;
-      },
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          print('AccountScreen state: $state'); // Debugging statement
-          if (state is AuthInitial) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is Authenticated) {
-            return const Center(child: Text('Welcome, User!'));
-          } else if (state is Unauthenticated) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const LoginWidget(),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SignUpWidget()),
-                    );
-                  },
-                  child: const Text('Sign Up'),
-                ),
-              ],
-            );
-          } else {
-            return const Center(child: Text('Unknown state.'));
-          }
-        },
+    final authProvider = Provider.of<AuthProvider>(context);
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Account')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                final email = emailController.text;
+                final password = passwordController.text;
+                authProvider.signIn(email, password);
+                Navigator.pop(context);
+              },
+              child: const Text('Sign In'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to sign-up screen or add sign-up logic here
+              },
+              child: const Text('Sign Up'),
+            ),
+          ],
+        ),
       ),
     );
   }

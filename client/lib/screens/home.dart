@@ -1,10 +1,9 @@
 // File: lib/screens/home.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:client/widgets/admob.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:client/bloc/bloc/auth_bloc.dart';
-import 'package:client/bloc/bloc_state/auth_state.dart';
+import 'package:client/providers/auth_provider.dart';
 import 'package:client/screens/account.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -39,6 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -56,18 +57,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(fontSize: 16),
               ),
             ),
-            BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, state) {
-                if (state is Authenticated) {
-                  return const AdMobWidget(); // Show AdMobWidget if user is authenticated
-                } else {
-                  return ElevatedButton(
+            authProvider.isAuthenticated
+                ? const AdMobWidget() // Show AdMobWidget if user is authenticated
+                : ElevatedButton(
                     onPressed: () => _navigateToAccount(context),
                     child: const Text('Sign In'),
-                  );
-                }
-              },
-            ),
+                  ),
           ],
         ),
       ),
