@@ -1,24 +1,28 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "name": "Python: Flask",
-        "type": "debugpy",
-        "request": "launch",
-        "program": "${workspaceFolder}/server/app.py",
-        "env": {
-          "FLASK_APP": "${workspaceFolder}/server/app.py",
-          "FLASK_ENV": "development"
-        },
-        "args": ["run"],
-        "jinja": true
-      },
-      {
-        "name": "Flutter",
-        "request": "launch",
-        "type": "dart",
-        "program": "${workspaceFolder}/client/lib/main.dart"
-      }
-    ]
-  }
-  
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/client/lib/main.dart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Node.js Program",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/server/index.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch with Nodemon",
+      "runtimeExecutable": "nodemon",
+      "program": "${workspaceFolder}/server/index.js",
+      "restart": true,
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}

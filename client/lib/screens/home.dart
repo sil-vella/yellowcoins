@@ -1,8 +1,11 @@
 // File: lib/screens/home.dart
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter/services.dart';
-import 'package:client/services/admob/rewarded_ad_manager.dart';
+import 'package:client/widgets/admob.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:client/bloc/bloc/auth_bloc.dart';
+import 'package:client/bloc/bloc_state/auth_state.dart';
+import 'package:client/screens/account.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,49 +15,59 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final RewardedAdManager _rewardedAdManager = RewardedAdManager();
-  String _rewardMessage = '';
-
   @override
   void initState() {
     super.initState();
 
     // Keep the screen awake
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
-
-    _rewardedAdManager.loadAd();
   }
 
   @override
   void dispose() {
-    _rewardedAdManager.dispose();
     // Allow the screen to turn off
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top]);
     super.dispose();
   }
 
-  void _handleUserEarnedReward(RewardItem reward) {
-    setState(() {
-      _rewardMessage = 'User earned reward: ${reward.amount} ${reward.type}';
-    });
+  void _navigateToAccount(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AccountScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('AdMob Example')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                _rewardedAdManager.showAd(_handleUserEarnedReward);
-              },
-              child: const Text('Show Rewarded Ad'),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Welcome to our app! Here is how you can use it:\n\n'
+                '1. Log in or sign up to your account.\n'
+                '2. Once logged in, you can watch ads to earn rewards.\n'
+                '3. Connect your PayPal account to receive payments.\n\n'
+                'Enjoy!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
             ),
-            const SizedBox(height: 20),
-            Text(_rewardMessage, style: const TextStyle(fontSize: 16)),
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                if (state is Authenticated) {
+                  return const AdMobWidget(); // Show AdMobWidget if user is authenticated
+                } else {
+                  return ElevatedButton(
+                    onPressed: () => _navigateToAccount(context),
+                    child: const Text('Sign In'),
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),

@@ -1,7 +1,7 @@
 // File: lib/widgets/common_layout.dart
 import 'package:flutter/material.dart';
 import 'package:client/screens/home.dart';
-import 'package:client/screens/account.dart'; // Assuming you have created this screen
+import 'package:client/screens/account.dart';
 
 class CommonLayout extends StatefulWidget {
   final Widget child;
@@ -17,7 +17,7 @@ class _CommonLayoutState extends State<CommonLayout> {
 
   static final List<Widget> _widgetOptions = <Widget>[
     const HomeScreen(),
-    const AccountScreen(), // You need to create this screen
+    const AccountScreen(),
   ];
 
   void _onItemTapped(int index) {
