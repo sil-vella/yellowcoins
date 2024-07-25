@@ -34,6 +34,13 @@ class DatabaseHelper {
       callback(err, this ? this.lastID : null);
     });
   }
+
+  getUserByEmail(email, callback) {
+    const query = `SELECT * FROM users WHERE email = ?`;
+    this.db.get(query, [email], (err, row) => {
+      callback(err, row);
+    });
+  }
 }
 
 module.exports = new DatabaseHelper();

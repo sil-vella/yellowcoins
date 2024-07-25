@@ -1,10 +1,12 @@
 // File: lib/widgets/signup.dart
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Add http package for making API requests
-import 'dart:convert'; // Add this for encoding the data
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SignUpWidget extends StatefulWidget {
-  const SignUpWidget({super.key});
+  final VoidCallback onLoginClicked;
+
+  const SignUpWidget({required this.onLoginClicked, super.key});
 
   @override
   _SignUpWidgetState createState() => _SignUpWidgetState();
@@ -23,7 +25,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
     final paypalAccount = _paypalAccountController.text;
 
     final response = await http.post(
-      Uri.parse('http://localhost:5000/api/signup'), // Replace with your server URL
+      Uri.parse('http://192.168.178.80:5000/api/signup'),  // Use your local machine's IP address
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'email': email,
@@ -37,10 +39,11 @@ class _SignUpWidgetState extends State<SignUpWidget> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account created successfully')),
       );
-      Navigator.pop(context);
+      widget.onLoginClicked();
     } else {
+      final responseData = json.decode(response.body);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to create account')),
+        SnackBar(content: Text(responseData['error'] ?? 'Failed to create account')),
       );
     }
   }
@@ -75,6 +78,11 @@ class _SignUpWidgetState extends State<SignUpWidget> {
             ElevatedButton(
               onPressed: _signUp,
               child: const Text('Sign Up'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: widget.onLoginClicked,
+              child: const Text('Already have an account? Login'),
             ),
           ],
         ),

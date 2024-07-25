@@ -10,11 +10,23 @@ router.post('/signup', (req, res) => {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  db.insertUser(name, email, password, paypalAccount, (err, userId) => {
+  // Check if email already exists
+  db.getUserByEmail(email, (err, user) => {
     if (err) {
-      return res.status(500).json({ error: 'Failed to create account' });
+      return res.status(500).json({ error: 'Database error' });
     }
-    res.status(201).json({ message: 'Account created successfully', userId });
+
+    if (user) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    // Insert new user
+    db.insertUser(name, email, password, paypalAccount, (err, userId) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to create account' });
+      }
+      res.status(201).json({ message: 'Account created successfully', userId });
+    });
   });
 });
 
