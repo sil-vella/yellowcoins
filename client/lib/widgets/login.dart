@@ -1,7 +1,9 @@
-// File: lib/widgets/login.dart
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:client/providers/auth_provider.dart';
+import 'package:client/providers/messages_provider.dart';
 
 class LoginWidget extends StatefulWidget {
   final VoidCallback onSignUpClicked;
@@ -19,19 +21,24 @@ class _LoginWidgetState extends State<LoginWidget> {
   Future<void> _login() async {
     final email = _emailController.text;
     final password = _passwordController.text;
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messagesProvider = Provider.of<MessagesProvider>(context, listen: false);
 
-    authProvider.signIn(email, password);
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.178.80:5000/api/login'), // Update with your local IP address
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
 
-    if (authProvider.isAuthenticated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful')),
-      );
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed')),
-      );
+      if (response.statusCode == 200) {
+        Provider.of<AuthProvider>(context, listen: false).signIn(email, password);
+        messagesProvider.setMessage('Login successful');
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        messagesProvider.setMessage('Login failed');
+      }
+    } catch (error) {
+      messagesProvider.setMessage('Error: $error');
     }
   }
 

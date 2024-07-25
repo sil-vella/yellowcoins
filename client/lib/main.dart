@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:client/widgets/common_layout.dart';
 import 'package:client/providers/auth_provider.dart';
+import 'package:client/providers/messages_provider.dart';
 import 'package:client/screens/home.dart';
 import 'package:client/screens/signin.dart';
 import 'package:client/screens/account.dart';
@@ -11,6 +12,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MessagesProvider()), // Add MessagesProvider
       ],
       child: MyApp(),
     ),
@@ -18,6 +20,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

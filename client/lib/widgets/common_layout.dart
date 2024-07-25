@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:client/widgets/bottom_nav.dart';
+import 'package:client/widgets/messages_widget.dart'; // Import MessagesWidget
 
 class CommonLayout extends StatelessWidget {
   final Widget child;
@@ -13,7 +14,17 @@ class CommonLayout extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
       ),
-      body: child,
+      body: Stack(
+        children: [
+          child,
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: MessagesWidget(), // Add MessagesWidget to listen for messages
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNav(), // Added BottomNavScreen here
     );
   }

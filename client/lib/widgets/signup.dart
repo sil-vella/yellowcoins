@@ -1,7 +1,8 @@
-// File: lib/widgets/signup.dart
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:client/providers/messages_provider.dart';
 
 class SignUpWidget extends StatefulWidget {
   final VoidCallback onLoginClicked;
@@ -23,6 +24,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
     final password = _passwordController.text;
     final name = _nameController.text;
     final paypalAccount = _paypalAccountController.text;
+    final messagesProvider = Provider.of<MessagesProvider>(context, listen: false);
 
     final response = await http.post(
       Uri.parse('http://192.168.178.80:5000/api/signup'),  // Use your local machine's IP address
@@ -36,15 +38,11 @@ class _SignUpWidgetState extends State<SignUpWidget> {
     );
 
     if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created successfully')),
-      );
-      widget.onLoginClicked();
+      messagesProvider.setMessage('Account created successfully. Please login.');
+      widget.onLoginClicked();  // Navigate to the login screen
     } else {
       final responseData = json.decode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(responseData['error'] ?? 'Failed to create account')),
-      );
+      messagesProvider.setMessage(responseData['error'] ?? 'Failed to create account');
     }
   }
 
