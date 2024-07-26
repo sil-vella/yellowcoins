@@ -6,6 +6,7 @@ import 'package:client/providers/messages_provider.dart';
 import 'package:client/screens/home.dart';
 import 'package:client/screens/signin.dart';
 import 'package:client/screens/account.dart';
+import 'package:client/widgets/message_handler.dart'; // Import MessageHandler
 
 void main() {
   runApp(
@@ -28,30 +29,8 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return ScaffoldMessenger(
           child: Scaffold(
-            body: Consumer<MessagesProvider>(
-              builder: (context, messagesProvider, _) {
-                final message = messagesProvider.message;
-                print('Current message in MyApp: $message'); // Debug statement
-
-                if (message.isNotEmpty) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    print('Executing Snackbar logic for message: $message'); // Debug statement
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    scaffoldMessenger.hideCurrentSnackBar(); // Ensure no other Snackbars are shown
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text(message),
-                        duration: Duration(seconds: 3),
-                      ),
-                    ).closed.then((_) {
-                      messagesProvider.clearMessage();
-                      print('Snackbar closed, message cleared'); // Debug statement
-                    });
-                  });
-                }
-                return child!;
-              },
-              child: child,
+            body: MessageHandler(
+              child: child!,
             ),
           ),
         );
