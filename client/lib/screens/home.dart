@@ -10,6 +10,7 @@ class HomeScreen extends StatelessWidget {
     return Center(
       child: ElevatedButton(
         onPressed: () {
+          print('Button pressed, setting message'); // Debug statement
           Provider.of<MessagesProvider>(context, listen: false).setMessage('Test message');
         },
         child: const Text('Show Message'),
