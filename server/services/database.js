@@ -15,10 +15,9 @@ class DatabaseHelper {
     const userTable = `
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-        paypalAccount TEXT
+        stripeAccountId TEXT
       )
     `;
     this.db.run(userTable, (err) => {
@@ -28,17 +27,30 @@ class DatabaseHelper {
     });
   }
 
-  insertUser(name, email, password, paypalAccount, callback) {
-    const query = `INSERT INTO users (name, email, password, paypalAccount) VALUES (?, ?, ?, ?)`;
-    this.db.run(query, [name, email, password, paypalAccount], function (err) {
-      callback(err, this ? this.lastID : null);
+  insertUser(email, password, callback) {
+    const query = `INSERT INTO users (email, password) VALUES (?, ?)`;
+    this.db.run(query, [email, password], function (err) {
+      if (callback && typeof callback === 'function') {
+        callback(err, this ? this.lastID : null);
+      }
     });
   }
 
   getUserByEmail(email, callback) {
     const query = `SELECT * FROM users WHERE email = ?`;
     this.db.get(query, [email], (err, row) => {
-      callback(err, row);
+      if (callback && typeof callback === 'function') {
+        callback(err, row);
+      }
+    });
+  }
+
+  updateUserStripeAccountId(userId, stripeAccountId, callback) {
+    const query = `UPDATE users SET stripeAccountId = ? WHERE id = ?`;
+    this.db.run(query, [stripeAccountId, userId], function (err) {
+      if (callback && typeof callback === 'function') {
+        callback(err, this ? this.changes : null);
+      }
     });
   }
 }

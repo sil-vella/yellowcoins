@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:client/widgets/login.dart'; // Adjust the import path as needed
-import 'package:client/widgets/signup.dart'; // Adjust the import path as needed
+import 'package:client/widgets/login.dart';
+import 'package:client/widgets/signup.dart';
+import 'package:client/widgets/message_handler.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -20,6 +21,10 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return showLogin ? LoginWidget(onSignUpClicked: toggleView) : SignUpWidget(onLoginClicked: toggleView);
+    return MessageHandler(
+      child: showLogin
+          ? LoginWidget(onSignUpClicked: toggleView)
+          : SignUpWidget(onLoginClicked: toggleView),
+    );
   }
 }

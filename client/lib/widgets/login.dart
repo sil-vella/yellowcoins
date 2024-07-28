@@ -18,29 +18,39 @@ class _LoginWidgetState extends State<LoginWidget> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  Future<void> _login() async {
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    final messagesProvider = Provider.of<MessagesProvider>(context, listen: false);
+Future<void> _login() async {
+  final email = _emailController.text;
+  final password = _passwordController.text;
+  final messagesProvider = Provider.of<MessagesProvider>(context, listen: false);
 
-    try {
-      final response = await http.post(
-        Uri.parse('http://192.168.178.80:5000/api/login'), // Update with your local IP address
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      );
+  try {
+    print('Sending login request for email: $email');
 
-      if (response.statusCode == 200) {
-        Provider.of<AuthProvider>(context, listen: false).signIn(email, password);
-        messagesProvider.setMessage('Login successful');
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        messagesProvider.setMessage('Login failed');
-      }
-    } catch (error) {
-      messagesProvider.setMessage('Error: $error');
+    final response = await http.post(
+      Uri.parse('http://192.168.178.80:5000/api/users/login'), // Ensure this matches your backend route
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+
+    print('Received response with status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      print('Login successful, userId: ${responseData['userId']}');
+      Provider.of<AuthProvider>(context, listen: false).signIn(email, password);
+      messagesProvider.setMessage('Login successful');
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      final responseData = jsonDecode(response.body);
+      print('Login failed, error: ${responseData['error']}');
+      messagesProvider.setMessage(responseData['error'] ?? 'Login failed');
     }
+  } catch (error) {
+    print('Login error: $error');
+    messagesProvider.setMessage('Error: $error');
   }
+}
 
   @override
   Widget build(BuildContext context) {

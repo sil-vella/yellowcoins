@@ -8,13 +8,14 @@ class AuthProvider with ChangeNotifier {
 
   void signIn(String email, String password) {
     // Add your authentication logic here
-    // For now, we'll just set _isAuthenticated to true
     _isAuthenticated = true;
+    print('User signed in, isAuthenticated: $_isAuthenticated');
     notifyListeners();
   }
 
   void signOut() {
     _isAuthenticated = false;
+    print('User signed out, isAuthenticated: $_isAuthenticated');
     notifyListeners();
   }
 }
