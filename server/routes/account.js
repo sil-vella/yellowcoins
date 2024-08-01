@@ -61,4 +61,38 @@ router.post('/trigger-payment', async (req, res) => {
   }
 });
 
+// Log ad view
+router.post('/log-ad-view', async (req, res) => {
+  const { userId, adType, rewardAmount, rewardType } = req.body;
+
+  try {
+    const earnings = calculateEarnings(rewardAmount); // Implement this function based on your eCPM
+
+    db.logAdView(userId, adType, earnings, rewardAmount, rewardType, async (err) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      try {
+        // Check if user meets the payout threshold
+        await triggerPayout(userId);
+        res.status(200).json({ message: 'Ad view logged and payout checked' });
+      } catch (error) {
+        console.error('Error triggering payout:', error);
+        res.status(500).json({ error: 'Error triggering payout' });
+      }
+    });
+  } catch (err) {
+    console.error('Error logging ad view:', err);
+    res.status(500).json({ error: 'Error logging ad view' });
+  }
+});
+
+function calculateEarnings(rewardAmount) {
+  const eCPM = 1.0; // Example eCPM, replace with actual value
+  const earningsPerView = (eCPM / 1000); // Earnings per view in dollars
+  return Math.round(earningsPerView * rewardAmount * 100); // Convert to cents
+}
+
 module.exports = router;

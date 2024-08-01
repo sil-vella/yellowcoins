@@ -25,8 +25,8 @@ async function createAccountLink(accountId) {
   try {
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: 'http://192.168.178.80:5000/stripe-reauth', // Replace with your server's IP address and endpoint
-      return_url: 'http://192.168.178.80:5000/stripe-account-complete', // Replace with your server's IP address and endpoint
+      refresh_url: 'http://192.168.178.80:5000/api/users/stripe-reauth', // Updated endpoint URL
+      return_url: 'http://192.168.178.80:5000/api/users/stripe-account-complete', // Updated endpoint URL
       type: 'account_onboarding',
     });
     return accountLink.url;

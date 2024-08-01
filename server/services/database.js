@@ -17,12 +17,30 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-        stripeAccountId TEXT
+        stripeAccountId TEXT,
+        earnings INTEGER DEFAULT 0
       )
     `;
     this.db.run(userTable, (err) => {
       if (err) {
         console.error('Error creating users table:', err.message);
+      }
+    });
+
+    const adViewTable = `
+      CREATE TABLE IF NOT EXISTS ad_views (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER NOT NULL,
+        adType TEXT NOT NULL,
+        earnings INTEGER NOT NULL,
+        rewardAmount INTEGER NOT NULL,
+        rewardType TEXT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users(id)
+      )
+    `;
+    this.db.run(adViewTable, (err) => {
+      if (err) {
+        console.error('Error creating ad_views table:', err.message);
       }
     });
   }
@@ -57,6 +75,41 @@ class DatabaseHelper {
   updateUserStripeAccountId(userId, stripeAccountId, callback) {
     const query = `UPDATE users SET stripeAccountId = ? WHERE id = ?`;
     this.db.run(query, [stripeAccountId, userId], function (err) {
+      if (typeof callback === 'function') {
+        callback(err);
+      }
+    });
+  }
+
+  logAdView(userId, adType, earnings, rewardAmount, rewardType, callback) {
+    const query = `
+      INSERT INTO ad_views (userId, adType, earnings, rewardAmount, rewardType)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    this.db.run(query, [userId, adType, earnings, rewardAmount, rewardType], function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      // Update user's earnings
+      const updateEarningsQuery = `
+        UPDATE users
+        SET earnings = earnings + ?
+        WHERE id = ?
+      `;
+      this.db.run(updateEarningsQuery, [earnings, userId], function (err) {
+        callback(err);
+      });
+    });
+  }
+
+  updateUserEarnings(userId, earnings, callback) {
+    const query = `
+      UPDATE users
+      SET earnings = ?
+      WHERE id = ?
+    `;
+    this.db.run(query, [earnings, userId], function (err) {
       if (typeof callback === 'function') {
         callback(err);
       }

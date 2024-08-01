@@ -25,7 +25,7 @@ class _AccountScreenState extends State<AccountScreen> {
       final response = await http.post(
         Uri.parse('http://192.168.178.80:5000/api/account/create-login-link'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': authProvider.userId}), // Pass the actual user ID
+        body: jsonEncode({'userId': authProvider.userId}),
       );
 
       print('Response status: ${response.statusCode}');
@@ -71,28 +71,30 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
+    final authProvider = Provider.of<AuthProvider>(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text('Email: ${authProvider.email}', style: TextStyle(fontSize: 20)),
+        Text('Earnings: \$${authProvider.earnings.toStringAsFixed(2)}', style: TextStyle(fontSize: 20)),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: _getLoginLink,
+          child: Text('Get Stripe Login Link'),
+        ),
+        SizedBox(height: 20),
+        if (_loginLinkUrl.isNotEmpty)
           ElevatedButton(
-            onPressed: _getLoginLink,
-            child: Text('Get Stripe Login Link'),
+            onPressed: _openLoginLink,
+            child: Text('Open Stripe Login Link'),
           ),
-          SizedBox(height: 20),
-          if (_loginLinkUrl.isNotEmpty)
-            ElevatedButton(
-              onPressed: _openLoginLink,
-              child: Text('Open Stripe Login Link'),
-            ),
-          if (_accountLinkUrl.isNotEmpty)
-            ElevatedButton(
-              onPressed: _openAccountLink,
-              child: Text('Complete Stripe Onboarding'),
-            ),
-        ],
-      ),
+        if (_accountLinkUrl.isNotEmpty)
+          ElevatedButton(
+            onPressed: _openAccountLink,
+            child: Text('Complete Stripe Onboarding'),
+          ),
+      ],
     );
   }
 }

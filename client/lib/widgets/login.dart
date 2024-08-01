@@ -38,7 +38,7 @@ class _LoginWidgetState extends State<LoginWidget> {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         print('Login successful, userId: ${responseData['userId']}');
-        Provider.of<AuthProvider>(context, listen: false).signIn(email, password, responseData['userId']);
+        Provider.of<AuthProvider>(context, listen: false).signIn(responseData);
         messagesProvider.setMessage('Login successful');
         Navigator.pushReplacementNamed(context, '/home');
       } else {

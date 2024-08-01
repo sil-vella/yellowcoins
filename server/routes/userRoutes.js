@@ -15,15 +15,13 @@ router.get('/stripe-account-complete', (req, res) => {
 
 // Sign up route
 router.post('/signup', async (req, res) => {
-  const { email, password, country } = req.body; // Accept country parameter
+  const { email, password, country } = req.body;
 
-  // Basic validation
   if (!email || !password || !country) {
     return res.status(400).json({ error: 'Email, password, and country are required' });
   }
 
   try {
-    // Check if email already exists
     db.getUserByEmail(email, async (err, user) => {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
@@ -32,18 +30,15 @@ router.post('/signup', async (req, res) => {
         return res.status(400).json({ error: 'Email already exists' });
       }
 
-      // Insert new user
       db.insertUser(email, password, null, async (err, userId) => {
         if (err) {
           return res.status(500).json({ error: 'Failed to create account' });
         }
 
-        // Create Stripe account
         try {
           const accountId = await createStripeAccount(userId, email, country);
           const accountLinkUrl = await createAccountLink(accountId);
 
-          // Update user with Stripe account ID
           db.updateUserStripeAccountId(userId, accountId, (err) => {
             if (err) {
               return res.status(500).json({ error: 'Failed to update Stripe account ID' });
@@ -62,41 +57,38 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// Login route
 router.post('/login', async (req, res) => {
-  console.log('Received login request');
   const { email, password } = req.body;
-  console.log('Email:', email, 'Password:', password);
 
-  // Basic validation
   if (!email || !password) {
-    console.log('Email and password are required');
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
   try {
-    // Check if user exists and password matches
     db.getUserByEmail(email, (err, user) => {
       if (err) {
-        console.log('Database error:', err);
         return res.status(500).json({ error: 'Database error' });
       }
       if (!user) {
-        console.log('User not found');
         return res.status(400).json({ error: 'Invalid email or password' });
       }
       if (user.password !== password) {
-        console.log('Invalid password');
         return res.status(400).json({ error: 'Invalid email or password' });
       }
 
-      console.log('Login successful for userId:', user.id);
-      res.status(200).json({ message: 'Login successful', userId: user.id });
+      // Return user data on successful login
+      res.status(200).json({
+        message: 'Login successful',
+        userId: user.id,
+        email: user.email,
+        stripeAccountId: user.stripeAccountId,
+        earnings: user.earnings // Ensure earnings are included
+      });
     });
   } catch (err) {
-    console.log('Database error:', err);
     res.status(500).json({ error: 'Database error' });
   }
 });
+
 
 module.exports = router;
