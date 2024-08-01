@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:client/providers/messages_provider.dart';
+import 'package:client/widgets/country_dropdown.dart'; // Import the CountryDropdown widget
 
 class SignUpWidget extends StatefulWidget {
   final VoidCallback onLoginClicked;
@@ -16,6 +17,7 @@ class SignUpWidget extends StatefulWidget {
 class _SignUpWidgetState extends State<SignUpWidget> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  String _selectedCountryCode = 'US'; // Default country code
 
   Future<void> _signUp() async {
     final email = _emailController.text;
@@ -24,11 +26,12 @@ class _SignUpWidgetState extends State<SignUpWidget> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.178.80:5000/api/users/signup'),  // Use your local machine's IP address
+        Uri.parse('http://192.168.178.80:5000/api/users/signup'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'email': email,
           'password': password,
+          'country': _selectedCountryCode, // Include country parameter
         }),
       );
 
@@ -63,6 +66,14 @@ class _SignUpWidgetState extends State<SignUpWidget> {
             controller: _passwordController,
             decoration: const InputDecoration(labelText: 'Password'),
             obscureText: true,
+          ),
+          CountryDropdown(
+            onCountryChanged: (String countryCode) {
+              setState(() {
+                _selectedCountryCode = countryCode;
+              });
+            },
+            initialCountryCode: _selectedCountryCode,
           ),
           const SizedBox(height: 20),
           ElevatedButton(

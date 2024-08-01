@@ -5,8 +5,8 @@ async function createStripeAccount(userId, email) {
   try {
     const account = await stripe.accounts.create({
       type: 'express',
-      country: 'US',
       email: email,
+      business_type: 'individual', // Specify the business type
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },

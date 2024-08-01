@@ -15,11 +15,11 @@ router.get('/stripe-account-complete', (req, res) => {
 
 // Sign up route
 router.post('/signup', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, country } = req.body; // Accept country parameter
 
   // Basic validation
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
+  if (!email || !password || !country) {
+    return res.status(400).json({ error: 'Email, password, and country are required' });
   }
 
   try {
@@ -40,7 +40,7 @@ router.post('/signup', async (req, res) => {
 
         // Create Stripe account
         try {
-          const accountId = await createStripeAccount(userId, email);
+          const accountId = await createStripeAccount(userId, email, country);
           const accountLinkUrl = await createAccountLink(accountId);
 
           // Update user with Stripe account ID
