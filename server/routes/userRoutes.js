@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../services/database');
-const { createStripeAccount, createAccountLink, createLoginLink } = require('../services/stripe/create_account');
+const { createStripeAccount, createAccountLink } = require('../services/stripe/create_account');
 const router = express.Router();
 
 // Handle Stripe reauth
@@ -24,7 +24,7 @@ router.post('/signup', async (req, res) => {
 
   try {
     // Check if email already exists
-    db.getUserByEmail(email, (err, user) => {
+    db.getUserByEmail(email, async (err, user) => {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
       }
@@ -33,7 +33,7 @@ router.post('/signup', async (req, res) => {
       }
 
       // Insert new user
-      db.insertUser(email, password, async (err, userId) => {
+      db.insertUser(email, password, null, async (err, userId) => {
         if (err) {
           return res.status(500).json({ error: 'Failed to create account' });
         }
@@ -43,13 +43,21 @@ router.post('/signup', async (req, res) => {
           const accountId = await createStripeAccount(userId, email);
           const accountLinkUrl = await createAccountLink(accountId);
 
-          res.status(201).json({ message: 'Account created successfully', userId, accountLinkUrl });
+          // Update user with Stripe account ID
+          db.updateUserStripeAccountId(userId, accountId, (err) => {
+            if (err) {
+              return res.status(500).json({ error: 'Failed to update Stripe account ID' });
+            }
+            res.status(201).json({ message: 'Account created successfully', userId, accountLinkUrl });
+          });
         } catch (stripeErr) {
+          console.error('Error creating account link:', stripeErr);
           return res.status(500).json({ error: 'Failed to create Stripe account' });
         }
       });
     });
   } catch (err) {
+    console.error('Error during signup:', err);
     res.status(500).json({ error: 'Failed to create account' });
   }
 });

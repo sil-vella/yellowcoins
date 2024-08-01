@@ -27,10 +27,10 @@ class DatabaseHelper {
     });
   }
 
-  insertUser(email, password, callback) {
-    const query = `INSERT INTO users (email, password) VALUES (?, ?)`;
-    this.db.run(query, [email, password], function (err) {
-      if (callback && typeof callback === 'function') {
+  insertUser(email, password, stripeAccountId, callback) {
+    const query = `INSERT INTO users (email, password, stripeAccountId) VALUES (?, ?, ?)`;
+    this.db.run(query, [email, password, stripeAccountId], function (err) {
+      if (typeof callback === 'function') {
         callback(err, this ? this.lastID : null);
       }
     });
@@ -39,7 +39,16 @@ class DatabaseHelper {
   getUserByEmail(email, callback) {
     const query = `SELECT * FROM users WHERE email = ?`;
     this.db.get(query, [email], (err, row) => {
-      if (callback && typeof callback === 'function') {
+      if (typeof callback === 'function') {
+        callback(err, row);
+      }
+    });
+  }
+
+  getUserById(id, callback) {
+    const query = `SELECT * FROM users WHERE id = ?`;
+    this.db.get(query, [id], (err, row) => {
+      if (typeof callback === 'function') {
         callback(err, row);
       }
     });
@@ -48,8 +57,8 @@ class DatabaseHelper {
   updateUserStripeAccountId(userId, stripeAccountId, callback) {
     const query = `UPDATE users SET stripeAccountId = ? WHERE id = ?`;
     this.db.run(query, [stripeAccountId, userId], function (err) {
-      if (callback && typeof callback === 'function') {
-        callback(err, this ? this.changes : null);
+      if (typeof callback === 'function') {
+        callback(err);
       }
     });
   }

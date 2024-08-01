@@ -25,8 +25,8 @@ async function createAccountLink(accountId) {
   try {
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: 'http://localhost:5000/stripe-reauth', // Update with your valid URL
-      return_url: 'http://localhost:5000/stripe-account-complete', // Update with your valid URL
+      refresh_url: 'yellowcoinsapp://stripe-reauth', // Custom scheme for your app
+      return_url: 'yellowcoinsapp://stripe-account-complete', // Custom scheme for your app
       type: 'account_onboarding',
     });
     return accountLink.url;
@@ -46,4 +46,19 @@ async function createLoginLink(accountId) {
   }
 }
 
-module.exports = { createStripeAccount, createAccountLink, createLoginLink };
+async function triggerPayment(accountId, amount) {
+  try {
+    const payout = await stripe.payouts.create({
+      amount: amount, // Amount in cents
+      currency: 'usd',
+    }, {
+      stripeAccount: accountId,
+    });
+    return payout;
+  } catch (err) {
+    console.error('Error triggering payment:', err);
+    throw err;
+  }
+}
+
+module.exports = { createStripeAccount, createAccountLink, createLoginLink, triggerPayment };
