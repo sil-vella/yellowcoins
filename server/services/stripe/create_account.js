@@ -25,8 +25,8 @@ async function createAccountLink(accountId) {
   try {
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: 'yellowcoinsapp://stripe-reauth', // Custom scheme for your app
-      return_url: 'yellowcoinsapp://stripe-account-complete', // Custom scheme for your app
+      refresh_url: 'http://192.168.178.80:5000/stripe-reauth', // Replace with your server's IP address and endpoint
+      return_url: 'http://192.168.178.80:5000/stripe-account-complete', // Replace with your server's IP address and endpoint
       type: 'account_onboarding',
     });
     return accountLink.url;
