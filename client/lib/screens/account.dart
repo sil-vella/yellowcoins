@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:client/providers/messages_provider.dart';
 import 'package:client/providers/auth_provider.dart';
+import 'package:client/widgets/login.dart';
+import 'package:client/widgets/signup.dart';
+import 'package:client/widgets/message_handler.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({Key? key}) : super(key: key);
@@ -16,6 +19,13 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   String _loginLinkUrl = '';
   String _accountLinkUrl = '';
+  bool showLogin = true;
+
+  void toggleView() {
+    setState(() {
+      showLogin = !showLogin;
+    });
+  }
 
   Future<void> _getLoginLink() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -73,28 +83,89 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text('Email: ${authProvider.email}', style: TextStyle(fontSize: 20)),
-        Text('Earnings: \$${authProvider.earnings.toStringAsFixed(2)}', style: TextStyle(fontSize: 20)),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: _getLoginLink,
-          child: Text('Get Stripe Login Link'),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Account'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Navigation',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text('Account'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/account');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.login),
+              title: const Text('Sign Up'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/sign_up');
+              },
+            ),
+          ],
         ),
-        SizedBox(height: 20),
-        if (_loginLinkUrl.isNotEmpty)
-          ElevatedButton(
-            onPressed: _openLoginLink,
-            child: Text('Open Stripe Login Link'),
-          ),
-        if (_accountLinkUrl.isNotEmpty)
-          ElevatedButton(
-            onPressed: _openAccountLink,
-            child: Text('Complete Stripe Onboarding'),
-          ),
-      ],
+      ),
+      body: authProvider.isAuthenticated
+          ? Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('Email: ${authProvider.email}', style: TextStyle(fontSize: 20)),
+                  Text('Earnings: \$${authProvider.earnings.toStringAsFixed(2)}', style: TextStyle(fontSize: 20)),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _getLoginLink,
+                    child: Text('Get Stripe Login Link'),
+                  ),
+                  SizedBox(height: 20),
+                  if (_loginLinkUrl.isNotEmpty)
+                    ElevatedButton(
+                      onPressed: _openLoginLink,
+                      child: Text('Open Stripe Login Link'),
+                    ),
+                  if (_accountLinkUrl.isNotEmpty)
+                    ElevatedButton(
+                      onPressed: _openAccountLink,
+                      child: Text('Complete Stripe Onboarding'),
+                    ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      authProvider.signOut();
+                    },
+                    child: Text('Log Out'),
+                  ),
+                ],
+              ),
+            )
+          : MessageHandler(
+              child: showLogin
+                  ? LoginWidget(onSignUpClicked: toggleView)
+                  : SignUpWidget(onLoginClicked: toggleView),
+            ),
     );
   }
 }

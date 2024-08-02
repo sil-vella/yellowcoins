@@ -65,6 +65,8 @@ router.post('/trigger-payment', async (req, res) => {
 router.post('/log-ad-view', async (req, res) => {
   const { userId, adType, rewardAmount, rewardType } = req.body;
 
+  console.log('Received log ad view request for userId:', userId, 'rewardAmount:', rewardAmount, 'rewardType:', rewardType);
+
   try {
     const earnings = calculateEarnings(rewardAmount); // Implement this function based on your eCPM
 

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:client/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
 
 class RewardedAdManager {
   RewardedAd? _rewardedAd;
@@ -38,12 +40,12 @@ class RewardedAdManager {
   }
 
   /// Shows the rewarded ad.
-  void showAd(Function(RewardItem) onUserEarnedReward) {
+  void showAd(BuildContext context, Function(RewardItem) onUserEarnedReward) {
     if (_rewardedAd != null) {
       _rewardedAd!.show(
         onUserEarnedReward: (ad, reward) {
           onUserEarnedReward(reward);
-          _logAdView(reward);
+          _logAdView(context, reward);
         },
       );
       _rewardedAd = null; // Reset the ad reference after showing
@@ -53,16 +55,17 @@ class RewardedAdManager {
   }
 
   /// Logs the ad view to the backend
-  void _logAdView(RewardItem reward) async {
+  void _logAdView(BuildContext context, RewardItem reward) async {
     // Assuming you have access to the AuthProvider to get the userId
-    final userId = AuthProvider().userId;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.userId;
     if (userId == null) {
       print('User not logged in, cannot log ad view.');
       return;
     }
 
     final response = await http.post(
-      Uri.parse('http://your-server-address/api/log-ad-view'),
+      Uri.parse('http://192.168.178.80:5000/api/account/log-ad-view'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'userId': userId,
@@ -74,6 +77,8 @@ class RewardedAdManager {
 
     if (response.statusCode != 200) {
       print('Failed to log ad view');
+    } else {
+      print('Ad view logged successfully');
     }
   }
 

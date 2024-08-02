@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:client/widgets/common_layout.dart';
 import 'package:client/providers/auth_provider.dart';
 import 'package:client/providers/messages_provider.dart';
 import 'package:client/screens/home.dart';
@@ -39,12 +38,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/',
+      initialRoute: '/home',
       routes: {
-        '/': (context) => CommonLayout(child: const HomeScreen(), title: 'Home'),
-        '/home': (context) => CommonLayout(child: const HomeScreen(), title: 'Home'),
-        '/account': (context) => CommonLayout(child: const AccountScreen(), title: 'Account'),
-        '/sign_up': (context) => CommonLayout(child: const SignInScreen(), title: 'Sign Up'),
+        '/home': (context) => const HomeScreen(),
+        '/account': (context) => const AccountScreen(),
+        '/sign_up': (context) => const SignInScreen(),
       },
     );
   }

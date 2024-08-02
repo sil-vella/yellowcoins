@@ -45,26 +45,73 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (!authProvider.isAuthenticated)
-            const Text(
-              'You need to be logged in to get reward',
-              style: TextStyle(fontSize: 16),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Navigation',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
             ),
-          if (!authProvider.isAuthenticated)
-            const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              _rewardedAdManager.showAd(_handleUserEarnedReward);
-            },
-            child: const Text('Show Rewarded Ad'),
-          ),
-          const SizedBox(height: 20),
-          Text(_rewardMessage, style: const TextStyle(fontSize: 16)),
-        ],
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text('Account'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/account');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.login),
+              title: const Text('Sign Up'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/sign_up');
+              },
+            ),
+          ],
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (!authProvider.isAuthenticated)
+              const Text(
+                'You need to be logged in to get reward',
+                style: TextStyle(fontSize: 16),
+              ),
+            if (!authProvider.isAuthenticated)
+              const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: authProvider.isAuthenticated
+                  ? () {
+                      _rewardedAdManager.showAd(context, _handleUserEarnedReward);
+                    }
+                  : null,
+              child: const Text('Show Rewarded Ad'),
+            ),
+            const SizedBox(height: 20),
+            Text(_rewardMessage, style: const TextStyle(fontSize: 16)),
+          ],
+        ),
       ),
     );
   }

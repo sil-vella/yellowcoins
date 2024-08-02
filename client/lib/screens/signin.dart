@@ -21,10 +21,55 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MessageHandler(
-      child: showLogin
-          ? LoginWidget(onSignUpClicked: toggleView)
-          : SignUpWidget(onLoginClicked: toggleView),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Sign In'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Navigation',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text('Account'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/account');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.login),
+              title: const Text('Sign Up'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/sign_up');
+              },
+            ),
+          ],
+        ),
+      ),
+      body: MessageHandler(
+        child: showLogin
+            ? LoginWidget(onSignUpClicked: toggleView)
+            : SignUpWidget(onLoginClicked: toggleView),
+      ),
     );
   }
 }

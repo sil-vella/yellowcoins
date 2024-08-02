@@ -97,10 +97,11 @@ class DatabaseHelper {
         SET earnings = earnings + ?
         WHERE id = ?
       `;
-      this.db.run(updateEarningsQuery, [earnings, userId], function (err) {
+      // Use an arrow function here to preserve the 'this' context
+      this.db.run(updateEarningsQuery, [earnings, userId], (err) => {
         callback(err);
       });
-    });
+    }.bind(this)); // Bind 'this' to preserve context
   }
 
   updateUserEarnings(userId, earnings, callback) {

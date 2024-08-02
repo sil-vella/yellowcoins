@@ -58,7 +58,7 @@ class _AdMobWidgetState extends State<AdMobWidget> {
         ElevatedButton(
           onPressed: authProvider.isAuthenticated
               ? () {
-                  _rewardedAdManager.showAd(_handleUserEarnedReward);
+                  _rewardedAdManager.showAd(context, _handleUserEarnedReward);
                 }
               : null,
           child: const Text('Show Rewarded Ad'),
