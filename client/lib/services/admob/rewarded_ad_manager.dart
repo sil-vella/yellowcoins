@@ -46,6 +46,7 @@ class RewardedAdManager {
         onUserEarnedReward: (ad, reward) {
           onUserEarnedReward(reward);
           _logAdView(context, reward);
+          _incrementCoins(context, reward.amount.toInt(), reward.type); // Increment coins based on actual reward amount and type
         },
       );
       _rewardedAd = null; // Reset the ad reference after showing
@@ -70,7 +71,7 @@ class RewardedAdManager {
       body: jsonEncode({
         'userId': userId,
         'adType': 'rewarded',
-        'rewardAmount': reward.amount,
+        'rewardAmount': reward.amount.toInt(), // Use the actual reward amount
         'rewardType': reward.type,
       }),
     );
@@ -80,6 +81,13 @@ class RewardedAdManager {
     } else {
       print('Ad view logged successfully');
     }
+  }
+
+  /// Increment the user's coins
+  void _incrementCoins(BuildContext context, int amount, String adType) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.incrementCoins(amount);
+    print('User earned $amount coins from $adType ad. Total coins: ${authProvider.coins}');
   }
 
   /// Disposes the rewarded ad.

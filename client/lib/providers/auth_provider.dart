@@ -1,5 +1,3 @@
-// File: lib/providers/auth_provider.dart
-
 import 'package:flutter/material.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -7,21 +5,24 @@ class AuthProvider with ChangeNotifier {
   int? _userId;
   String? _email;
   String? _stripeAccountId;
-  double _earnings = 0.0;
+  int _coins = 0; // Coins as integer
+  double _ecpmRate = 0.0; // eCPM rate as double
 
   bool get isAuthenticated => _isAuthenticated;
   int? get userId => _userId;
   String? get email => _email;
   String? get stripeAccountId => _stripeAccountId;
-  double get earnings => _earnings;
+  int get coins => _coins; // Getter for coins
+  double get ecpmRate => _ecpmRate; // Getter for eCPM rate
+  double get earnings => (_coins * _ecpmRate) / 1000; // Calculate earnings
 
   void signIn(Map<String, dynamic> userData) {
     _isAuthenticated = true;
     _userId = userData['userId'];
     _email = userData['email'];
     _stripeAccountId = userData['stripeAccountId'];
-    _earnings = userData['earnings'] / 100.0; // Convert from cents to dollars
-    print('User signed in, isAuthenticated: $_isAuthenticated, userId: $_userId');
+    _coins = userData['coins'] ?? 0; // Set coins from userData
+    _ecpmRate = userData['ecpmRate']?.toDouble() ?? 0.0; // Set eCPM rate from userData
     notifyListeners();
   }
 
@@ -30,8 +31,18 @@ class AuthProvider with ChangeNotifier {
     _userId = null;
     _email = null;
     _stripeAccountId = null;
-    _earnings = 0.0;
-    print('User signed out, isAuthenticated: $_isAuthenticated');
+    _coins = 0;
+    _ecpmRate = 0.0;
+    notifyListeners();
+  }
+
+  void incrementCoins(int amount) {
+    _coins += amount;
+    notifyListeners();
+  }
+
+  void updateCoins(int coins) {
+    _coins = coins;
     notifyListeners();
   }
 }

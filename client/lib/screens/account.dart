@@ -134,7 +134,8 @@ class _AccountScreenState extends State<AccountScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text('Email: ${authProvider.email}', style: TextStyle(fontSize: 20)),
-                  Text('Earnings: \$${authProvider.earnings.toStringAsFixed(2)}', style: TextStyle(fontSize: 20)),
+                  Text('Coins: ${authProvider.coins}', style: TextStyle(fontSize: 20)),
+                  Text('Earnings: \$${authProvider.earnings.toStringAsFixed(20)}', style: TextStyle(fontSize: 20)),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _getLoginLink,

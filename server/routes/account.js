@@ -3,6 +3,7 @@
 const express = require('express');
 const { createStripeAccount, createAccountLink, createLoginLink, triggerPayment } = require('../services/stripe/create_account');
 const db = require('../services/database');
+const { listAdUnits, generateNetworkReport } = require('../services/google/admob');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const router = express.Router();
 
@@ -37,7 +38,7 @@ router.post('/create-login-link', (req, res) => {
         console.log('Onboarding required, returning account link:', accountLinkUrl); // Log the account link
         return res.status(400).json({
           error: 'Account onboarding not completed',
-          accountLinkUrl: accountLinkUrl
+          accountLinkUrl: accountLinkUrl,
         });
       }
 
@@ -65,25 +66,13 @@ router.post('/trigger-payment', async (req, res) => {
 router.post('/log-ad-view', async (req, res) => {
   const { userId, adType, rewardAmount, rewardType } = req.body;
 
-  console.log('Received log ad view request for userId:', userId, 'rewardAmount:', rewardAmount, 'rewardType:', rewardType);
-
   try {
-    const earnings = calculateEarnings(rewardAmount); // Implement this function based on your eCPM
-
-    db.logAdView(userId, adType, earnings, rewardAmount, rewardType, async (err) => {
+    db.logAdView(userId, adType, 0, rewardAmount, rewardType, async (err) => {
       if (err) {
         console.error('Database error:', err);
         return res.status(500).json({ error: 'Database error' });
       }
-
-      try {
-        // Check if user meets the payout threshold
-        await triggerPayout(userId);
-        res.status(200).json({ message: 'Ad view logged and payout checked' });
-      } catch (error) {
-        console.error('Error triggering payout:', error);
-        res.status(500).json({ error: 'Error triggering payout' });
-      }
+      res.status(200).json({ message: 'Ad view logged successfully' });
     });
   } catch (err) {
     console.error('Error logging ad view:', err);
@@ -91,10 +80,28 @@ router.post('/log-ad-view', async (req, res) => {
   }
 });
 
-function calculateEarnings(rewardAmount) {
-  const eCPM = 1.0; // Example eCPM, replace with actual value
-  const earningsPerView = (eCPM / 1000); // Earnings per view in dollars
-  return Math.round(earningsPerView * rewardAmount * 100); // Convert to cents
-}
+// List ad units
+router.get('/list-ad-units', async (req, res) => {
+  try {
+    const adUnits = await listAdUnits();
+    res.json(adUnits);
+  } catch (err) {
+    console.error('Error listing ad units:', err); // Log the full error details
+    res.status(500).json({ error: `Error listing ad units: ${err.message}` });
+  }
+});
+
+// Generate Network Report for an Ad Unit
+router.post('/generate-network-report', async (req, res) => {
+  const { adUnitId } = req.body;
+
+  try {
+    const report = await generateNetworkReport(adUnitId);
+    res.json(report);
+  } catch (err) {
+    console.error('Error generating network report:', err.message);
+    res.status(500).send('Error generating network report');
+  }
+});
 
 module.exports = router;

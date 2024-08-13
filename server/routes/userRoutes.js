@@ -82,13 +82,13 @@ router.post('/login', async (req, res) => {
         userId: user.id,
         email: user.email,
         stripeAccountId: user.stripeAccountId,
-        earnings: user.earnings // Ensure earnings are included
+        coins: user.coins,
+        ecpmRate: user.ecpmRate // Ensure eCPM rate is included
       });
     });
   } catch (err) {
     res.status(500).json({ error: 'Database error' });
   }
 });
-
 
 module.exports = router;

@@ -1,3 +1,5 @@
+// File: server/services/database.js
+
 const sqlite3 = require('sqlite3').verbose();
 
 class DatabaseHelper {
@@ -18,7 +20,8 @@ class DatabaseHelper {
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         stripeAccountId TEXT,
-        earnings INTEGER DEFAULT 0
+        coins INTEGER DEFAULT 0,
+        ecpmRate REAL DEFAULT 0.0
       )
     `;
     this.db.run(userTable, (err) => {
@@ -91,14 +94,14 @@ class DatabaseHelper {
         return callback(err);
       }
 
-      // Update user's earnings
-      const updateEarningsQuery = `
+      // Update user's coins based on ad type
+      const updateCoinsQuery = `
         UPDATE users
-        SET earnings = earnings + ?
+        SET coins = coins + ?
         WHERE id = ?
       `;
       // Use an arrow function here to preserve the 'this' context
-      this.db.run(updateEarningsQuery, [earnings, userId], (err) => {
+      this.db.run(updateCoinsQuery, [rewardAmount, userId], (err) => {
         callback(err);
       });
     }.bind(this)); // Bind 'this' to preserve context
