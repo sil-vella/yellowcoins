@@ -1,0 +1,102 @@
+Documentation for Rewarded Ad Flow Using RewardedAdManager
+This documentation outlines the flow and usage of the RewardedAdManager class for managing rewarded ads in a Flutter application, along with the integration of MessagesProvider for user notifications.
+
+1. Overview
+The RewardedAdManager class is responsible for managing the lifecycle of rewarded ads in your Flutter app. It handles the loading, displaying, and reward processing of rewarded ads using Google Mobile Ads SDK. Additionally, it interacts with a backend server to log ad views and updates the user's coin balance based on the rewards earned.
+
+The MessagesProvider is used to update and display messages to the user about the status of the ad, providing feedback on events such as ad loading, failures, and reward earning.
+
+2. Components Involved
+RewardedAdManager: Manages the rewarded ad lifecycle.
+MessagesProvider: Provides messages to the UI to notify users of ad-related events.
+AuthProvider: Handles user authentication and provides user-specific data such as ad unit IDs and user IDs.
+Backend Server: Logs ad views and updates user rewards.
+3. RewardedAdManager Class
+Initialization
+RewardedAdManager(BuildContext context):
+Purpose: Initializes the RewardedAdManager with the necessary context.
+Parameters: context - The current build context, used to access providers.
+Actions:
+Retrieves the ad unit ID from AuthProvider.
+If the ad unit ID is not available, logs an error.
+Loading an Ad
+Future<void> loadAd():
+Purpose: Loads a rewarded ad using the ad unit ID.
+Actions:
+If the ad unit ID is valid, attempts to load the ad.
+On successful load, the ad is stored in _rewardedAd.
+If the ad fails to load, an error message is sent via MessagesProvider.
+Sets up a FullScreenContentCallback to handle ad dismissal and failures during display.
+Showing an Ad
+void showAd(BuildContext context, Function(RewardItem) onUserEarnedReward):
+Purpose: Displays the rewarded ad if it has been loaded.
+Parameters:
+context: The current build context.
+onUserEarnedReward: A callback function triggered when the user earns a reward.
+Actions:
+If an ad is ready, it is displayed, and the reward earned is processed.
+Logs the ad view to the backend using _logAdView.
+Increments the user's coin balance using _incrementCoins.
+If no ad is ready, a message is sent to notify the user.
+Logging Ad Views
+void _logAdView(BuildContext context, RewardItem reward):
+Purpose: Logs the ad view to a backend server.
+Parameters:
+context: The current build context.
+reward: The reward earned by the user, containing type and amount.
+Actions:
+Sends a POST request to the backend server with details of the ad view, including user ID, ad type, and reward details.
+Logs the success or failure of the logging operation.
+Incrementing User Coins
+void _incrementCoins(BuildContext context, int amount, String adType):
+Purpose: Increments the user's coin balance based on the reward earned.
+Parameters:
+context: The current build context.
+amount: The number of coins to be added.
+adType: The type of ad that was watched.
+Actions:
+Calls incrementCoins on the AuthProvider to update the user's coin balance.
+Logs the updated coin balance.
+Disposal
+void dispose():
+Purpose: Disposes of the rewarded ad when it's no longer needed.
+Actions:
+Disposes of the _rewardedAd object to free up resources.
+4. Integration with MessagesProvider
+Purpose: MessagesProvider is used to provide real-time feedback to users about the ad status, such as when the ad has been loaded, failed, or a reward has been earned.
+Usage:
+MessagesProvider is accessed via Provider.of<MessagesProvider>(context, listen: false).
+setMessage method of MessagesProvider is called with the relevant message string whenever there is an update in the ad status.
+5. User Interaction Flow
+Ad Loading:
+
+When the AdMobWidget is initialized, it calls loadAd() on RewardedAdManager.
+A message is displayed to the user when the ad is successfully loaded or if it fails to load.
+Ad Display:
+
+When the user clicks a button to watch an ad, showAd() is called.
+If an ad is ready, it is displayed, and the reward callback is triggered upon completion.
+The user is notified of the reward earned and the ad status.
+Reward Processing:
+
+The reward earned is logged to the backend, and the user's coin balance is updated.
+Feedback is provided to the user via the message displayed on the UI.
+Error Handling:
+
+If any errors occur during ad loading, display, or reward processing, they are logged and communicated to the user through MessagesProvider.
+6. Example UI Implementation
+AdMobWidget:
+
+The widget that interfaces with RewardedAdManager and MessagesProvider to provide an interactive UI for users to watch rewarded ads and receive updates on the ad status.
+HomeScreen:
+
+The main screen that includes AdMobWidget, displaying the available rewards and user interaction options.
+7. Backend Interaction
+Logging Ad Views:
+
+Ad views are logged to a backend server, ensuring that user interactions with ads are tracked for reward processing and analytics.
+Incrementing User Rewards:
+
+The user's coin balance is incremented based on the rewards earned, ensuring that users are compensated for their interaction with ads.
+8. Conclusion
+This flow provides a modular and structured approach to managing rewarded ads in a Flutter application, ensuring seamless user interaction, efficient reward processing, and comprehensive error handling, all while keeping the user informed through real-time messaging.

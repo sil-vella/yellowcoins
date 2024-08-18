@@ -36,9 +36,16 @@ class _LoginWidgetState extends State<LoginWidget> {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        print('Login successful, userId: ${responseData['userId']}');
-        Provider.of<AuthProvider>(context, listen: false).signIn(responseData);
+        final userData = jsonDecode(response.body);
+        print('Login successful, userId: ${userData['userId']}');
+        print('User data received: $userData');
+
+        // Since the eCPM rate and rewardedAdUnitId are now part of the login response, you can store them directly
+        Provider.of<AuthProvider>(context, listen: false).signIn(userData, {
+          'rewardedAdUnitId': userData['rewardedAdUnitId'], // Use rewardedAdUnitId here directly
+          'adUnitIds': {}, // Placeholder, fill with actual ad unit ids if available
+        });
+
         messagesProvider.setMessage('Login successful');
         Navigator.pushReplacementNamed(context, '/home');
       } else {

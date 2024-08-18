@@ -6,8 +6,11 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { authorize, getAccessToken } = require('./services/google/google_auth');
 
+require('./services/cron/get_ecpm_rates');
+
 const userRoutes = require('./routes/userRoutes');
 const accountRoutes = require('./routes/account');
+
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -17,6 +20,7 @@ app.use(cors());
 
 app.use('/api/users', userRoutes);
 app.use('/api/account', accountRoutes);
+
 
 // OAuth2 callback route
 app.get('/oauth2callback', async (req, res) => {

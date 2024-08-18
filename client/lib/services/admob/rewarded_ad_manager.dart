@@ -1,96 +1,116 @@
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:client/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:client/providers/messages_provider.dart';
 
 class RewardedAdManager {
   RewardedAd? _rewardedAd;
-  final String adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/5224354917'
-      : 'ca-app-pub-3940256099942544/1712485313';
+  late final String adUnitId;
+  final BuildContext context;
 
-  /// Loads a rewarded ad.
+  RewardedAdManager(this.context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    adUnitId = authProvider.rewardedAdUnitId ?? ''; // Fetch the ad unit ID dynamically
+    print('RewardedAdManager initialized with adUnitId: $adUnitId');
+    if (adUnitId.isEmpty) {
+      print('Ad unit ID is not available');
+    }
+  }
+
   Future<void> loadAd() async {
+    if (adUnitId.isEmpty) {
+      print('No valid ad unit ID available.');
+      return;
+    }
+
+    final messagesProvider = Provider.of<MessagesProvider>(context, listen: false);
+    print('Attempting to load ad with adUnitId: $adUnitId');
+
     await RewardedAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
+          print('RewardedAd loaded successfully');
           _rewardedAd = ad;
           _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
+              print('Ad dismissed');
               ad.dispose();
               loadAd(); // Load a new ad
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
+              print('Failed to show ad: $error');
               ad.dispose();
+              messagesProvider.setMessage('Ad failed to show: $error');
               loadAd(); // Load a new ad
             },
           );
-          print('RewardedAd loaded.');
+          messagesProvider.setMessage('RewardedAd loaded.');
         },
         onAdFailedToLoad: (error) {
-          print('RewardedAd failed to load: $error');
+          print('Failed to load RewardedAd: $error');
+          messagesProvider.setMessage('RewardedAd failed to load: $error');
         },
       ),
     );
   }
 
-  /// Shows the rewarded ad.
   void showAd(BuildContext context, Function(RewardItem) onUserEarnedReward) {
+    final messagesProvider = Provider.of<MessagesProvider>(context, listen: false);
+    print('Attempting to show ad');
+
     if (_rewardedAd != null) {
+      print('Showing ad...');
       _rewardedAd!.show(
         onUserEarnedReward: (ad, reward) {
+          print('User earned reward: ${reward.amount} ${reward.type}');
           onUserEarnedReward(reward);
-          _logAdView(context, reward);
-          _incrementCoins(context, reward.amount.toInt(), reward.type); // Increment coins based on actual reward amount and type
+          _updateCoinsAndEarnings(context, reward.amount.toInt()); // Update coins and earnings
+          messagesProvider.setMessage('User earned reward: ${reward.amount} ${reward.type}');
         },
       );
-      _rewardedAd = null; // Reset the ad reference after showing
+      _rewardedAd = null;
     } else {
-      print('Rewarded ad is not ready yet.');
+      print('Ad is not ready yet.');
+      messagesProvider.setMessage('Ad is not ready yet.');
     }
   }
 
-  /// Logs the ad view to the backend
-  void _logAdView(BuildContext context, RewardItem reward) async {
-    // Assuming you have access to the AuthProvider to get the userId
+  void _updateCoinsAndEarnings(BuildContext context, int rewardAmount) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userId = authProvider.userId;
-    if (userId == null) {
-      print('User not logged in, cannot log ad view.');
-      return;
-    }
+    final currentCoins = authProvider.coins;
+    final ecpmRate = authProvider.ecpmRate;
+    final newCoins = currentCoins + rewardAmount;
+    final earnings = (rewardAmount * ecpmRate) / 1000;
+    final newEarnings = authProvider.earnings + earnings;
 
-    final response = await http.post(
-      Uri.parse('http://192.168.178.80:5000/api/account/log-ad-view'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'userId': userId,
-        'adType': 'rewarded',
-        'rewardAmount': reward.amount.toInt(), // Use the actual reward amount
-        'rewardType': reward.type,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.178.80:5000/api/account/update-coins-earnings'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userId,
+          'coins': newCoins,
+          'earnings': newEarnings,
+        }),
+      );
 
-    if (response.statusCode != 200) {
-      print('Failed to log ad view');
-    } else {
-      print('Ad view logged successfully');
+      if (response.statusCode == 200) {
+        print('Coins and earnings updated successfully on the server');
+        authProvider.updateCoinsAndEarnings(newCoins, newEarnings);
+      } else {
+        print('Failed to update coins and earnings on the server: ${response.body}');
+      }
+    } catch (e) {
+      print('Exception occurred while updating coins and earnings: $e');
     }
   }
 
-  /// Increment the user's coins
-  void _incrementCoins(BuildContext context, int amount, String adType) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    authProvider.incrementCoins(amount);
-    print('User earned $amount coins from $adType ad. Total coins: ${authProvider.coins}');
-  }
-
-  /// Disposes the rewarded ad.
   void dispose() {
     _rewardedAd?.dispose();
   }

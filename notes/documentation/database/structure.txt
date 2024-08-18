@@ -1,0 +1,106 @@
+Database Flow and Structure Documentation (Updated)
+This document provides an overview of the updated database schema, flow, and the key operations managed by the DatabaseHelper class in your application. The database is designed to manage users, track ad views by type, store eCPM rates, and maintain earnings and coin balances for users.
+
+1. Updated Database Structure
+The database now consists of three primary tables: users, ad_views, and ecpm_rates. The ad_views table has been simplified to track the total number of views and rewards for each ad type without associating them with individual users.
+
+1.1. Users Table (users)
+Purpose: The users table stores information about the users of the application.
+
+Schema:
+
+sql
+Copy code
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    stripeAccountId TEXT,
+    coins INTEGER DEFAULT 0,
+    earnings REAL DEFAULT 0.0
+);
+Columns:
+
+id: Unique identifier for each user (Primary Key).
+email: User's email address (must be unique).
+password: Encrypted password for user authentication.
+stripeAccountId: Optional Stripe account ID for processing payments.
+coins: The current balance of coins for the user (default: 0).
+earnings: The total earnings for the user, typically from watching ads (default: 0.0).
+1.2. Ad Views Table (ad_views)
+Purpose: The ad_views table tracks the total number of views and total rewards for each ad type across all users.
+
+Schema:
+
+sql
+Copy code
+CREATE TABLE IF NOT EXISTS ad_views (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    adType TEXT NOT NULL UNIQUE,
+    totalViews INTEGER DEFAULT 0,
+    totalRewardAmount INTEGER DEFAULT 0
+);
+Columns:
+
+id: Unique identifier for each record (Primary Key).
+adType: The type of ad viewed (e.g., banner, interstitial).
+totalViews: The total number of views for this adType.
+totalRewardAmount: The total reward amount earned for this adType.
+1.3. eCPM Rates Table (ecpm_rates)
+Purpose: The ecpm_rates table stores the effective cost per thousand impressions (eCPM) rates for different ad types. This data is periodically fetched from AdMob's API and updated in the database.
+
+Schema:
+
+sql
+Copy code
+CREATE TABLE IF NOT EXISTS ecpm_rates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    adType TEXT NOT NULL UNIQUE,
+    ecpmRate REAL NOT NULL,
+    lastFetchDate TEXT NOT NULL
+);
+Columns:
+
+id: Unique identifier for each eCPM rate record (Primary Key).
+adType: The type of ad for which the eCPM rate is stored (must be unique).
+ecpmRate: The current eCPM rate for the ad type, fetched from AdMob.
+lastFetchDate: The date and time when the eCPM rate was last updated.
+2. Updated Database Flow
+The updated database flow reflects the simplified structure of the ad_views table, which now tracks aggregate data for ad types rather than individual user interactions.
+
+2.1. User Management
+Inserting a User (insertUser):
+
+Inserts a new user into the users table with their email, password, and optional Stripe account ID.
+The user's initial coin balance and earnings are set to 0.
+Retrieving a User (getUserByEmail, getUserById):
+
+Retrieves user information based on their email or ID.
+Returns all user data, including their coins and earnings.
+Updating Stripe Account ID (updateUserStripeAccountId):
+
+Updates a user's Stripe account ID in the users table.
+2.2. Ad View Logging
+Logging an Ad View (logAdView):
+The logAdView method tracks the total number of views and rewards for each adType:
+Checks if an entry for the given adType already exists in the ad_views table.
+If it exists, increments the totalViews and totalRewardAmount.
+If it doesn't exist, inserts a new entry with totalViews set to 1 and totalRewardAmount set to the reward amount.
+2.3. eCPM Rate Management
+Inserting or Updating eCPM Rates (upsertEcpmRate):
+This operation ensures that the eCPM rate for each ad type is up-to-date. It either inserts a new record or updates an existing one in the ecpm_rates table.
+The lastFetchDate is updated each time the eCPM rate is refreshed, allowing for tracking when the last update occurred.
+3. Key Operations
+Inserting/Updating eCPM Rates:
+
+eCPM rates are periodically fetched from AdMob's API and updated in the database using a cron job. This ensures that the most current rates are used to calculate rewards and earnings.
+Logging Ad Views:
+
+When an ad is viewed, the event is logged in the ad_views table. This data is aggregated by ad type rather than by individual users, simplifying the tracking process.
+User Management:
+
+The users table is the central repository for user data, which includes their email, password, Stripe account ID, coin balance, and earnings.
+4. Summary
+This updated database design and flow provide a streamlined approach to managing users, tracking ad views by type, storing eCPM rates, and calculating earnings in your application. The removal of user-specific tracking from the ad_views table simplifies data management and is more efficient for use cases where aggregate ad performance data is sufficient.
+
+The DatabaseHelper class continues to encapsulate all database operations, providing a clean and maintainable interface for interacting with the database. With periodic updates to eCPM rates via a cron job and detailed tracking of ad types, the system remains well-suited for managing ad-based rewards and earnings in a scalable manner.

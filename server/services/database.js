@@ -1,10 +1,10 @@
-// File: server/services/database.js
-
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
 class DatabaseHelper {
   constructor() {
-    this.db = new sqlite3.Database('./local.db', (err) => {
+    const dbPath = path.resolve(__dirname, '../../local.db');
+    this.db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
         console.error('Error opening database:', err.message);
       } else {
@@ -21,7 +21,7 @@ class DatabaseHelper {
         password TEXT NOT NULL,
         stripeAccountId TEXT,
         coins INTEGER DEFAULT 0,
-        ecpmRate REAL DEFAULT 0.0
+        earnings REAL DEFAULT 0.0
       )
     `;
     this.db.run(userTable, (err) => {
@@ -30,20 +30,30 @@ class DatabaseHelper {
       }
     });
 
-    const adViewTable = `
-      CREATE TABLE IF NOT EXISTS ad_views (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        userId INTEGER NOT NULL,
-        adType TEXT NOT NULL,
-        earnings INTEGER NOT NULL,
-        rewardAmount INTEGER NOT NULL,
-        rewardType TEXT NOT NULL,
-        FOREIGN KEY (userId) REFERENCES users(id)
+    const ecpmTable = `
+      CREATE TABLE IF NOT EXISTS ecpm_rates (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        averageEcpm REAL NOT NULL,
+        lastFetchDate TEXT NOT NULL
       )
     `;
-    this.db.run(adViewTable, (err) => {
+    this.db.run(ecpmTable, (err) => {
       if (err) {
-        console.error('Error creating ad_views table:', err.message);
+        console.error('Error creating ecpm_rates table:', err.message);
+      }
+    });
+  }
+
+  upsertAverageEcpmRate(averageEcpm, lastFetchDate, callback) {
+    const query = `
+      INSERT INTO ecpm_rates (id, averageEcpm, lastFetchDate)
+      VALUES (1, ?, ?)
+      ON CONFLICT(id)
+      DO UPDATE SET averageEcpm = excluded.averageEcpm, lastFetchDate = excluded.lastFetchDate
+    `;
+    this.db.run(query, [averageEcpm, lastFetchDate], function (err) {
+      if (typeof callback === 'function') {
+        callback(err);
       }
     });
   }
@@ -84,39 +94,26 @@ class DatabaseHelper {
     });
   }
 
-  logAdView(userId, adType, earnings, rewardAmount, rewardType, callback) {
-    const query = `
-      INSERT INTO ad_views (userId, adType, earnings, rewardAmount, rewardType)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    this.db.run(query, [userId, adType, earnings, rewardAmount, rewardType], function (err) {
-      if (err) {
-        return callback(err);
-      }
-
-      // Update user's coins based on ad type
-      const updateCoinsQuery = `
-        UPDATE users
-        SET coins = coins + ?
-        WHERE id = ?
-      `;
-      // Use an arrow function here to preserve the 'this' context
-      this.db.run(updateCoinsQuery, [rewardAmount, userId], (err) => {
-        callback(err);
-      });
-    }.bind(this)); // Bind 'this' to preserve context
-  }
-
-  updateUserEarnings(userId, earnings, callback) {
+  updateUserCoinsAndEarnings(userId, coins, earnings, callback) {
     const query = `
       UPDATE users
-      SET earnings = ?
+      SET coins = ?, earnings = ?
       WHERE id = ?
     `;
-    this.db.run(query, [earnings, userId], function (err) {
+    this.db.run(query, [coins, earnings, userId], function (err) {
       if (typeof callback === 'function') {
         callback(err);
       }
+    });
+  }
+
+  getAverageEcpmRate(callback) {
+    const query = `SELECT averageEcpm FROM ecpm_rates WHERE id = 1`;
+    this.db.get(query, [], (err, row) => {
+      if (err) {
+        return callback(err, null);
+      }
+      callback(null, row ? row.averageEcpm : null);
     });
   }
 }

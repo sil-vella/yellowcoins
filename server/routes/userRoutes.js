@@ -2,6 +2,9 @@ const express = require('express');
 const db = require('../services/database');
 const { createStripeAccount, createAccountLink } = require('../services/stripe/create_account');
 const router = express.Router();
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 // Handle Stripe reauth
 router.get('/stripe-reauth', (req, res) => {
@@ -67,6 +70,7 @@ router.post('/login', async (req, res) => {
   try {
     db.getUserByEmail(email, (err, user) => {
       if (err) {
+        console.error('Database error:', err);
         return res.status(500).json({ error: 'Database error' });
       }
       if (!user) {
@@ -76,19 +80,34 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Invalid email or password' });
       }
 
-      // Return user data on successful login
-      res.status(200).json({
-        message: 'Login successful',
-        userId: user.id,
-        email: user.email,
-        stripeAccountId: user.stripeAccountId,
-        coins: user.coins,
-        ecpmRate: user.ecpmRate // Ensure eCPM rate is included
+      // Get the AdMob rewarded ad unit ID from environment variables
+      const rewardAdId = process.env.ADMOB_REWARDED_AD_UNIT_ID;
+
+      // Fetch the eCPM rate from the database
+      db.getAverageEcpmRate((err, ecpmRate) => {
+        if (err) {
+          console.error('Database error fetching eCPM rate:', err);
+          return res.status(500).json({ error: 'Database error fetching eCPM rate' });
+        }
+
+        // Return user data, AdMob rewarded ad unit ID, and eCPM rate on successful login
+        res.status(200).json({
+          message: 'Login successful',
+          userId: user.id,
+          email: user.email,
+          stripeAccountId: user.stripeAccountId,
+          coins: user.coins,
+          earnings: user.earnings,
+          rewardedAdUnitId: rewardAdId,
+          ecpmRate: ecpmRate, // Include the eCPM rate
+        });
       });
     });
   } catch (err) {
-    res.status(500).json({ error: 'Database error' });
+    console.error('Error during login:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 module.exports = router;

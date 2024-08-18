@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:client/providers/auth_provider.dart';
 import 'package:client/providers/messages_provider.dart';
@@ -7,7 +8,8 @@ import 'package:client/screens/signin.dart';
 import 'package:client/screens/account.dart';
 import 'package:client/widgets/message_handler.dart'; // Import MessageHandler
 
-void main() {
+Future main() async {
+  await dotenv.load(fileName: ".env");
   runApp(
     MultiProvider(
       providers: [
