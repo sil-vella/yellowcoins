@@ -1,0 +1,46 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile  # Always use Dockerfile.dev for development
+      args:
+        NODE_ENV: development  # Hardcoded development environment
+    env_file:
+      - .env.development  # Use the specific development environment file
+    image: silvella/yellowcoins-server:latest # Consistently tag image for development
+    environment:
+      NODE_ENV: development  # Explicitly set for clarity in the service configuration
+      DEBUG: true  # Assume debug is always true for development
+    ports:
+      - "3000:3000"  # Application port
+      - "9229:9229"  # Debugging port
+    depends_on:
+      - db
+    networks:
+      - app-network
+    volumes:
+      - ./index.js:/app/index.js    # Map the local 'index.js' to '/app/index.js' in the container
+      - ./src:/app/src              # Map the local 'src' directory to '/app/src' in the container
+      - ./routes:/app/routes        # Map the local 'routes' directory to '/app/routes' in the container
+      - ./services:/app/services
+
+  db:
+    image: mysql:8.0
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: gu%8%86ygu6_dev_root_password
+      MYSQL_DATABASE: gu%8%86ygu6_dev_database
+      MYSQL_USER: gu%8%86ygu6_dev_user
+      MYSQL_PASSWORD: gu%8%86ygu6_dev_password
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+
+networks:
+  app-network:
+    driver: bridge

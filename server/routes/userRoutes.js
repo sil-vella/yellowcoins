@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require('../services/database');
+const db = require('../src/db'); // MySQL-based database helper
 const { createStripeAccount, createAccountLink } = require('../services/stripe/create_account');
 const router = express.Router();
 const dotenv = require('dotenv');
@@ -25,41 +25,25 @@ router.post('/signup', async (req, res) => {
   }
 
   try {
-    db.getUserByEmail(email, async (err, user) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-      if (user) {
-        return res.status(400).json({ error: 'Email already exists' });
-      }
+    const user = await db.getUserByEmail(email); // Await the promise returned by the database call
+    if (user) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
 
-      db.insertUser(email, password, null, async (err, userId) => {
-        if (err) {
-          return res.status(500).json({ error: 'Failed to create account' });
-        }
+    const userId = await db.insertUser(email, password, null); // Insert user and await the result
+    const accountId = await createStripeAccount(userId, email, country);
+    const accountLinkUrl = await createAccountLink(accountId);
 
-        try {
-          const accountId = await createStripeAccount(userId, email, country);
-          const accountLinkUrl = await createAccountLink(accountId);
+    await db.updateUserStripeAccountId(userId, accountId); // Update Stripe account ID
 
-          db.updateUserStripeAccountId(userId, accountId, (err) => {
-            if (err) {
-              return res.status(500).json({ error: 'Failed to update Stripe account ID' });
-            }
-            res.status(201).json({ message: 'Account created successfully', userId, accountLinkUrl });
-          });
-        } catch (stripeErr) {
-          console.error('Error creating account link:', stripeErr);
-          return res.status(500).json({ error: 'Failed to create Stripe account' });
-        }
-      });
-    });
+    res.status(201).json({ message: 'Account created successfully', userId, accountLinkUrl });
   } catch (err) {
     console.error('Error during signup:', err);
     res.status(500).json({ error: 'Failed to create account' });
   }
 });
 
+// Login route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -68,46 +52,32 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    db.getUserByEmail(email, (err, user) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ error: 'Database error' });
-      }
-      if (!user) {
-        return res.status(400).json({ error: 'Invalid email or password' });
-      }
-      if (user.password !== password) {
-        return res.status(400).json({ error: 'Invalid email or password' });
-      }
+    const user = await db.getUserByEmail(email); // Await the promise returned by the database call
+    if (!user || user.password !== password) {
+      return res.status(400).json({ error: 'Invalid email or password' });
+    }
 
-      // Get the AdMob rewarded ad unit ID from environment variables
-      const rewardAdId = process.env.ADMOB_REWARDED_AD_UNIT_ID;
+    // Get the AdMob rewarded ad unit ID from environment variables
+    const rewardAdId = process.env.ADMOB_REWARDED_AD_UNIT_ID;
 
-      // Fetch the eCPM rate from the database
-      db.getAverageEcpmRate((err, ecpmRate) => {
-        if (err) {
-          console.error('Database error fetching eCPM rate:', err);
-          return res.status(500).json({ error: 'Database error fetching eCPM rate' });
-        }
+    // Fetch the eCPM rate from the database
+    const ecpmRate = await db.getAverageEcpmRate(); // Await the promise to get the eCPM rate
 
-        // Return user data, AdMob rewarded ad unit ID, and eCPM rate on successful login
-        res.status(200).json({
-          message: 'Login successful',
-          userId: user.id,
-          email: user.email,
-          stripeAccountId: user.stripeAccountId,
-          coins: user.coins,
-          earnings: user.earnings,
-          rewardedAdUnitId: rewardAdId,
-          ecpmRate: ecpmRate, // Include the eCPM rate
-        });
-      });
+    // Return user data, AdMob rewarded ad unit ID, and eCPM rate on successful login
+    res.status(200).json({
+      message: 'Login successful',
+      userId: user.id,
+      email: user.email,
+      stripeAccountId: user.stripeAccountId,
+      coins: user.coins,
+      earnings: user.earnings,
+      rewardedAdUnitId: rewardAdId,
+      ecpmRate: ecpmRate, // Include the eCPM rate
     });
   } catch (err) {
     console.error('Error during login:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 module.exports = router;

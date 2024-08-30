@@ -23,6 +23,19 @@
       "restart": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
-    }
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Docker Node.js",
+      "address": "localhost",
+      "port": 9229,  // This port should match the one exposed and mapped in Docker Compose
+      "localRoot": "${workspaceFolder}/server",
+      "remoteRoot": "/app",
+      "protocol": "inspector",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "internalConsoleOptions": "neverOpen"
+    }    
   ]
 }

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:client/providers/messages_provider.dart';
 import 'package:client/widgets/country_dropdown.dart'; // Import the CountryDropdown widget
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SignUpWidget extends StatefulWidget {
   final VoidCallback onLoginClicked;
@@ -15,6 +16,7 @@ class SignUpWidget extends StatefulWidget {
 }
 
 class _SignUpWidgetState extends State<SignUpWidget> {
+    String baseUrl = dotenv.env['BASE_URL'] ?? 'No Base URL';
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _selectedCountryCode = 'US'; // Default country code
@@ -26,7 +28,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.178.80:5000/api/users/signup'),
+        Uri.parse('$baseUrl/api/users/signup'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'email': email,
@@ -47,6 +49,7 @@ class _SignUpWidgetState extends State<SignUpWidget> {
         }
       }
     } catch (e) {
+      print('Error: $e');  // Log the error message
       messagesProvider.setMessage('Failed to connect to the server. Please try again later.');
     }
   }

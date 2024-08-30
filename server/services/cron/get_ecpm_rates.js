@@ -1,10 +1,10 @@
 const cron = require('node-cron');
 const { getEcpmRates } = require('../../services/google/admob'); // Import the getEcpmRates function
-const db = require('../../services/database');
+const db = require('../../src/db'); // Ensure this path points to the DatabaseHelper
 
 const APP_ID = process.env.ADMOB_APP_ID; // Get the App ID from environment variables
 
-// Function to fetch eCPM rates, update the database with the average eCPM
+// Function to fetch eCPM rates and update the database with the average eCPM
 async function updateEcpmRates() {
   try {
     if (!APP_ID) {
@@ -18,13 +18,8 @@ async function updateEcpmRates() {
     const currentDate = new Date().toISOString();
 
     // Update the database with the average eCPM
-    await db.upsertAverageEcpmRate(averageEcpm, currentDate, (err) => {
-      if (err) {
-        console.error(`Error updating average eCPM in database:`, err);
-      } else {
-        console.log(`Average eCPM updated successfully to ${averageEcpm}.`);
-      }
-    });
+    await db.upsertAverageEcpmRate(averageEcpm, currentDate);
+    console.log(`Average eCPM updated successfully to ${averageEcpm}.`);
   } catch (error) {
     console.error('Error fetching eCPM rates:', error);
   }

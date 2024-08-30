@@ -8,6 +8,7 @@ import 'package:client/providers/auth_provider.dart';
 import 'package:client/widgets/login.dart';
 import 'package:client/widgets/signup.dart';
 import 'package:client/widgets/message_handler.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({Key? key}) : super(key: key);
@@ -17,6 +18,7 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
+    String baseUrl = dotenv.env['BASE_URL'] ?? 'No Base URL';
   String _loginLinkUrl = '';
   String _accountLinkUrl = '';
   bool showLogin = true;
@@ -33,7 +35,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.178.80:5000/api/account/create-login-link'),
+        Uri.parse('$baseUrl/api/account/create-login-link'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'userId': authProvider.userId}),
       );

@@ -5,8 +5,10 @@ import 'package:client/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:client/providers/messages_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class RewardedAdManager {
+    String baseUrl = dotenv.env['BASE_URL'] ?? 'No Base URL';
   RewardedAd? _rewardedAd;
   late final String adUnitId;
   final BuildContext context;
@@ -91,7 +93,7 @@ class RewardedAdManager {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.178.80:5000/api/account/update-coins-earnings'),
+        Uri.parse('$baseUrl/api/account/update-coins-earnings'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': userId,

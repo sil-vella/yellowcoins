@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthProvider with ChangeNotifier {
+
+  String baseUrl = dotenv.env['BASE_URL'] ?? 'No Base URL';
   bool _isAuthenticated = false;
   int? _userId;
   String? _email;
@@ -34,36 +37,55 @@ class AuthProvider with ChangeNotifier {
     return _adUnitIds?[adType];
   }
 
-  void signIn(Map<String, dynamic> userData, Map<String, dynamic> admobConfig) {
-    print('Signing in with user data: $userData');
-    print('AdMob configuration received: $admobConfig');
+void signIn(Map<String, dynamic> userData, Map<String, dynamic> admobConfig) {
+  print('Signing in with user data: $userData');
+  print('AdMob configuration received: $admobConfig');
 
-    _isAuthenticated = true;
-    _userId = userData['userId'];
-    _email = userData['email'];
-    _stripeAccountId = userData['stripeAccountId'];
-    _coins = userData['coins'] ?? 0; // Set coins from userData
-    _earnings = userData['earnings']?.toDouble() ?? 0.0; // Set earnings from userData
-    _ecpmRate = userData['ecpmRate']?.toDouble() ?? 0.0; // Set eCPM rate from userData
+  _isAuthenticated = true;
+  _userId = userData['userId'];
+  _email = userData['email'];
+  _stripeAccountId = userData['stripeAccountId'];
+  _coins = userData['coins'] ?? 0; // Set coins from userData
+  
+  // Safely parse earnings and eCPM rate to doubles
+  _earnings = _parseDouble(userData['earnings']);
+  _ecpmRate = _parseDouble(userData['ecpmRate']);
 
-    // Set AdMob configuration from the config data
-    _adMobAccountId = admobConfig['accountId'];
-    _adUnitIds = Map<String, String>.from(admobConfig['adUnitIds'] ?? {});
-    _rewardedAdUnitId = admobConfig['rewardedAdUnitId']; // Set the rewarded ad unit ID
+  // Set AdMob configuration from the config data
+  _adMobAccountId = admobConfig['accountId'];
+  _adUnitIds = Map<String, String>.from(admobConfig['adUnitIds'] ?? {});
+  _rewardedAdUnitId = admobConfig['rewardedAdUnitId']; // Set the rewarded ad unit ID
 
-    print('User signed in: '
-        'userId=$_userId, '
-        'email=$_email, '
-        'stripeAccountId=$_stripeAccountId, '
-        'coins=$_coins, '
-        'earnings=$_earnings, '
-        'ecpmRate=$_ecpmRate, ' // Log the eCPM rate
-        'adMobAccountId=$_adMobAccountId, '
-        'adUnitIds=$_adUnitIds, '
-        'rewardedAdUnitId=$_rewardedAdUnitId');
+  print('User signed in: '
+      'userId=$_userId, '
+      'email=$_email, '
+      'stripeAccountId=$_stripeAccountId, '
+      'coins=$_coins, '
+      'earnings=$_earnings, '
+      'ecpmRate=$_ecpmRate, ' // Log the eCPM rate
+      'adMobAccountId=$_adMobAccountId, '
+      'adUnitIds=$_adUnitIds, '
+      'rewardedAdUnitId=$_rewardedAdUnitId');
 
-    notifyListeners();
+  notifyListeners();
+}
+
+// Helper method to safely parse a value to double
+double _parseDouble(dynamic value) {
+  if (value == null) return 0.0; // Return default if value is null
+  if (value is double) return value; // If already a double, return as is
+  if (value is int) return value.toDouble(); // Convert int to double
+  if (value is String) {
+    try {
+      return double.parse(value); // Parse string to double
+    } catch (e) {
+      print('Error parsing string to double: $e');
+      return 0.0; // Return default if parsing fails
+    }
   }
+  return 0.0; // Return default if none of the conditions match
+}
+
 
   void signOut() {
     print('Signing out userId=$_userId');
@@ -89,7 +111,7 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.178.80:5000/api/users/update-coins-earnings'),
+        Uri.parse('$baseUrl/api/users/update-coins-earnings'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': _userId,

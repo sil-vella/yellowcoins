@@ -1,5 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const db = require('../database');
+const db = require('../../src/db'); // Make sure this path correctly points to your DatabaseHelper
 
 async function createStripeAccount(userId, email) {
   try {
@@ -13,11 +13,12 @@ async function createStripeAccount(userId, email) {
       },
     });
 
+    // Update the database with the new Stripe account ID
     await db.updateUserStripeAccountId(userId, account.id);
     return account.id;
   } catch (err) {
     console.error('Error creating Stripe account:', err);
-    throw err;
+    throw err; // Rethrow the error to be handled by the caller if necessary
   }
 }
 
@@ -25,8 +26,8 @@ async function createAccountLink(accountId) {
   try {
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: 'http://192.168.178.80:5000/api/users/stripe-reauth', // Updated endpoint URL
-      return_url: 'http://192.168.178.80:5000/api/users/stripe-account-complete', // Updated endpoint URL
+      refresh_url: process.env.STRIPE_REFRESH_URL, // Use environment variable to manage URL
+      return_url: process.env.STRIPE_RETURN_URL, // Use environment variable to manage URL
       type: 'account_onboarding',
     });
     return accountLink.url;
@@ -49,7 +50,7 @@ async function createLoginLink(accountId) {
 async function triggerPayment(accountId, amount) {
   try {
     const payout = await stripe.payouts.create({
-      amount: amount, // Amount in cents
+      amount: amount * 100, // Ensure the amount is in cents
       currency: 'usd',
     }, {
       stripeAccount: accountId,

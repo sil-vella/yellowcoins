@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:client/providers/auth_provider.dart';
 import 'package:client/providers/messages_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginWidget extends StatefulWidget {
   final VoidCallback onSignUpClicked;
@@ -15,6 +16,7 @@ class LoginWidget extends StatefulWidget {
 }
 
 class _LoginWidgetState extends State<LoginWidget> {
+    String baseUrl = dotenv.env['BASE_URL'] ?? 'No Base URL';
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -27,7 +29,7 @@ class _LoginWidgetState extends State<LoginWidget> {
       print('Sending login request for email: $email');
 
       final response = await http.post(
-        Uri.parse('http://192.168.178.80:5000/api/users/login'), // Ensure this matches your backend route
+        Uri.parse('$baseUrl/api/users/login'), // Ensure this matches your backend route
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       );
